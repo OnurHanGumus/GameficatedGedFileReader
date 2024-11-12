@@ -41,11 +41,7 @@ class RawStorageReader : MonoBehaviour
         for (int i = 0; i < _indi_lists.Length; i++)
         {
             _temp = new Dictionary<string, string>();
-
-            if (i != 0)
-            {
-                _temp["Id"] = _indi_lists[i - 1].Substring(_indi_lists[i - 1].LastIndexOf("@") - 2, 2);
-            }
+            GetId(i);
 
             for (int indeks = 0; indeks < _individualColumnNames.Names.Count; indeks++)
             {
@@ -64,6 +60,21 @@ class RawStorageReader : MonoBehaviour
         entitySignals.onIndieProcessCompleted?.Invoke();
     }
 
+    private void GetId(int i)
+    {
+        if (i != 0)
+        {
+            bool isNum = true;
+            int counter = 1;
+            while (isNum == true)
+            {
+                isNum = int.TryParse(_indi_lists[i - 1].Substring(_indi_lists[i - 1].LastIndexOf("@") - counter, 1), out int a);
+                ++counter;
+            }
+            _temp["Id"] = _indi_lists[i - 1].Substring(_indi_lists[i - 1].LastIndexOf("@") - counter + 1, counter - 1);
+        }
+    }
+
     private void ReadFamilies()
     {
         _readText = rawContentSignals.onGetContent();
@@ -73,10 +84,7 @@ class RawStorageReader : MonoBehaviour
         {
             _temp = new Dictionary<string, string>();
 
-            if (i != 0)
-            {
-                _temp["Id"] = _indi_lists[i - 1].Substring(_indi_lists[i - 1].LastIndexOf("@") - 2, 2);
-            }
+            GetId(i);
 
             for (int indeks = 0; indeks < _familyColumnNames.Names.Count; indeks++)
             {
