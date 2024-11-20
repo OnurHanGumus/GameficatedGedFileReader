@@ -9,7 +9,7 @@ public class GedFileReader : MonoBehaviour
     [SerializeField] private RawContentSignals rawContentSignals;
 
     private const string _file_location = "C:\\Users\\onurh\\OneDrive\\Documents\\GameficatedGedFileReader\\";
-    private string _file_name = "MyGed.ged";
+    private string _file_name = "Asd.ged";
 
     private string _read_part = "";
 

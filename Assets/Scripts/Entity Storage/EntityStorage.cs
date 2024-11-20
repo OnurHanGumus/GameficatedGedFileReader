@@ -28,7 +28,19 @@ class EntityStorage : MonoBehaviour
     {
         foreach (var i in Families.Values)
         {
-            Debug.Log("ID: " + i.Id + "\nHusb: " + i.Husband + "\nWife: " + i.Wife + "\nChild: " + i.Childs[0]);
+            Debug.Log("ID: " + i.Id);
+            if (i.Husband != null)
+            {
+                Debug.Log("HUSB: " + i.Husband);
+            }
+            if (i.Wife != null)
+            {
+                Debug.Log("WIFE: " + i.Wife);
+            }
+            foreach (var y in i.Childs)
+            {
+                Debug.Log("Child: " + y);
+            }
         }
     }
 

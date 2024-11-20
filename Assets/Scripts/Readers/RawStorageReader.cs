@@ -10,12 +10,13 @@ class RawStorageReader : MonoBehaviour
     [SerializeField] private RawContentSignals rawContentSignals;
     [SerializeField] ColumnNames _individualColumnNames;
     [SerializeField] ColumnNames _familyColumnNames;
+    [SerializeField] private List<string> _childs;
 
     private string _readText = "";
     private string[] _indi_lists;
 
 
-    private Dictionary<string,string> _temp = new Dictionary<string, string>();
+    private Dictionary<string,string> _tempRecord = new Dictionary<string, string>();
 
     private void Awake()
     {
@@ -40,38 +41,38 @@ class RawStorageReader : MonoBehaviour
 
         for (int i = 0; i < _indi_lists.Length; i++)
         {
-            _temp = new Dictionary<string, string>();
+            _tempRecord = new Dictionary<string, string>();
             GetId(i);
 
             for (int indeks = 0; indeks < _individualColumnNames.Names.Count; indeks++)
             {
                 if (_indi_lists[i].Contains(_individualColumnNames.Names[indeks]))
                 {
-                    _temp[_individualColumnNames.Names[indeks]] = _indi_lists[i].Split(_individualColumnNames.Names[indeks])[1].Split("\n")[0];
+                    _tempRecord[_individualColumnNames.Names[indeks]] = _indi_lists[i].Split(_individualColumnNames.Names[indeks])[1].Split("\n")[0];
                 }
             }
 
-            if (_temp.Count >= 3)
+            if (_tempRecord.Count >= 3)
             {
-                SaveIndie(_temp);
+                SaveIndie(_tempRecord);
             }
         }
 
         entitySignals.onIndieProcessCompleted?.Invoke();
     }
 
-    private void GetId(int i)
+    private void GetId(int indi_list_indeks)
     {
-        if (i != 0)
+        if (indi_list_indeks != 0)
         {
             bool isNum = true;
             int counter = 1;
             while (isNum == true)
             {
-                isNum = int.TryParse(_indi_lists[i - 1].Substring(_indi_lists[i - 1].LastIndexOf("@") - counter, 1), out int a);
+                isNum = int.TryParse(_indi_lists[indi_list_indeks - 1].Substring(_indi_lists[indi_list_indeks - 1].LastIndexOf("@") - counter, 1), out int a);
                 ++counter;
             }
-            _temp["Id"] = _indi_lists[i - 1].Substring(_indi_lists[i - 1].LastIndexOf("@") - counter + 1, counter - 1);
+            _tempRecord["Id"] = _indi_lists[indi_list_indeks - 1].Substring(_indi_lists[indi_list_indeks - 1].LastIndexOf("@") - counter + 1, counter - 1);
         }
     }
 
@@ -80,23 +81,25 @@ class RawStorageReader : MonoBehaviour
         _readText = rawContentSignals.onGetContent();
         _indi_lists = _readText.Split("FAM");
 
-        for (int i = 0; i < _indi_lists.Length; i++)
+        for (int indi_list_indeks = 0; indi_list_indeks < _indi_lists.Length; indi_list_indeks++)
         {
-            _temp = new Dictionary<string, string>();
+            _tempRecord = new Dictionary<string, string>();
 
-            GetId(i);
+            GetId(indi_list_indeks);
 
-            for (int indeks = 0; indeks < _familyColumnNames.Names.Count; indeks++)
+            for (int column_indeks = 0; column_indeks < _familyColumnNames.Names.Count; column_indeks++)
             {
-                if (_indi_lists[i].Contains(_familyColumnNames.Names[indeks]))
+                if (_indi_lists[indi_list_indeks].Contains(_familyColumnNames.Names[column_indeks]))
                 {
-                    _temp[_familyColumnNames.Names[indeks]] = _indi_lists[i].Split(_familyColumnNames.Names[indeks])[1].Split("\n")[0];
+                    _tempRecord[_familyColumnNames.Names[column_indeks]] = _indi_lists[indi_list_indeks].Split(_familyColumnNames.Names[column_indeks])[1].Split("\n")[0];
+                    //Debug.Log(_indi_lists[indi_list_indeks].Split(_familyColumnNames.Names[column_indeks])[1].Split("\n")[0]);
+                    //_childs.Add();
                 }
             }
 
-            if (_temp.Count >= 3)
+            if (_tempRecord.Count >= 3)
             {
-                SaveFamily(_temp);
+                SaveFamily(_tempRecord);
             }
         }
 
@@ -128,8 +131,17 @@ class RawStorageReader : MonoBehaviour
     {
         Family tempIndi = new Family();
 
-        tempIndi.Husband = dic["HUSB"];
-        tempIndi.Wife = dic["WIFE"];
+        if (dic.ContainsKey("HUSB"))
+        {
+            tempIndi.Husband = dic["HUSB"];
+
+        }
+        if (dic.ContainsKey("WIFE"))
+        {
+            tempIndi.Wife = dic["WIFE"];
+
+        }
+
         tempIndi.Id = dic["Id"];
 
         if (dic.ContainsKey("CHIL"))
