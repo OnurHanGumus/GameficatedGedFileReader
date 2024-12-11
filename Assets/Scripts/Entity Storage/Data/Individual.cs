@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-
-class Individual
+﻿class Individual
 {
-    public string Id;
-    public string Name;
-    public string Surename;
-    public string Age;
-    public string Gender;
-    public string RelatedFamily;
-    public string OwnFamily;
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string Surname { get; set; }
+    public string Age { get; set; }
+    public string Gender { get; set; }
+    public string FAMC { get; set; }
+    public string FAMS { get; set; }
 }

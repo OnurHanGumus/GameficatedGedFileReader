@@ -5,8 +5,9 @@ using UnityEngine;
 
 class Family
 {
-    public string Husband = "";
-    public string Wife = "";
-    public string Id = "";
-    public List<string> Childs = new List<string>();
+    public string Husband { get; set; } = "";
+    public string Wife { get; set; } = "";
+    public string Id { get; set; } = "";
+    public List<string> Children { get; set; } = new List<string>();
+    public List<string> ChildrenToShow { get; set; } = new List<string>();
 }
