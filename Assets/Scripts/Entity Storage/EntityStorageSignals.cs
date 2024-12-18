@@ -11,4 +11,5 @@ class EntityStorageSignals : MonoBehaviour
     public UnityAction<Dictionary<string, Individual>> onSetContent = delegate { };
     public UnityAction onIndieProcessCompleted = delegate { };
     public UnityAction onFamilyProcessCompleted = delegate { };
+    public UnityAction onFileOpened = delegate { };
 }

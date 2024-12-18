@@ -1,18 +1,13 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using SimpleFileBrowser;
 using UnityEngine;
 
 class GEDFileReader : MonoBehaviour
 {
     [SerializeField] private EntityStorageSignals storageSignals;
-    private const string _file_location = "C:\\Users\\onurh\\OneDrive\\Documents\\GameficatedGedFileReader\\";
-    private string _file_name = "shakespeare.ged";
-
-    private void Start()
-    {
-        ReadGEDFile(_file_location + _file_name);
-    }
 
     public void ReadGEDFile(string filePath)
     {
@@ -97,20 +92,56 @@ class GEDFileReader : MonoBehaviour
                 }
             }
         }
+
+        storageSignals.onFileOpened?.Invoke();
     }
 
-    public void PrintData()
+    void Start()
     {
-        Debug.Log("Individuals");
-        foreach (var individual in storageSignals.onGetIndividuals().Values)
-        {
-            Debug.Log($"ID: {individual.Id}, Name: {individual.Name}, Surname: {individual.Surname}, Gender: {individual.Gender}, FAMC: {individual.FAMC}, FAMS: {individual.FAMS}");
-        }
+        // Set filters (optional)
+        // It is sufficient to set the filters just once (instead of each time before showing the file browser dialog), 
+        // if all the dialogs will be using the same filters
+        FileBrowser.SetFilters(true, new FileBrowser.Filter("GED",".ged"));
 
-        Debug.Log("Individuals");
-        foreach (var family in storageSignals.onGetFamilies().Values)
+        // Set default filter that is selected when the dialog is shown (optional)
+        // Returns true if the default filter is set successfully
+        // In this case, set Images filter as the default filter
+        FileBrowser.SetDefaultFilter(".ged");
+
+        FileBrowser.SetExcludedExtensions(".lnk", ".tmp", ".zip", ".rar", ".exe");
+
+        FileBrowser.AddQuickLink("Users", "C:\\Users", null);
+    }
+
+    public void OpenFileExplorer()
+    {
+        StartCoroutine(ShowLoadDialogCoroutine());
+    }
+
+    IEnumerator ShowLoadDialogCoroutine()
+    {
+        yield return FileBrowser.WaitForLoadDialog(FileBrowser.PickMode.Files, true, null, null, "Select Files", "Load");
+
+        Debug.Log(FileBrowser.Success);
+
+        if (FileBrowser.Success)
         {
-            Debug.Log($"ID: {family.Id}, Husband: {family.Husband}, Wife: {family.Wife}, Children: {string.Join(", ", family.Children)}");
+            OnFilesSelected(FileBrowser.Result);
         }
+    }
+
+    void OnFilesSelected(string[] filePaths)
+    {
+        // Print paths of the selected files
+        for (int i = 0; i < filePaths.Length; i++)
+            Debug.Log(filePaths[i]);
+
+        string filePath = filePaths[0];
+        byte[] bytes = FileBrowserHelpers.ReadBytesFromFile(filePath);
+
+        string destinationPath = Path.Combine(Application.persistentDataPath, FileBrowserHelpers.GetFilename(filePath));
+        FileBrowserHelpers.CopyFile(filePath, destinationPath);
+
+        ReadGEDFile(filePath);
     }
 }

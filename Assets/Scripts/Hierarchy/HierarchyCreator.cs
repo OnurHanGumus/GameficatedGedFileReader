@@ -25,7 +25,13 @@ public class HierarchyCreator : MonoBehaviour
     public void Start()
     {
         Init();
+        entityStorageSignals.onFileOpened += OnFileOpened;
+    }
+
+    private void OnFileOpened()
+    {
         Invoke("CreateHierarchy", 1f);
+
     }
 
     private void Init()
