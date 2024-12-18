@@ -7,7 +7,7 @@ class GEDFileReader : MonoBehaviour
 {
     [SerializeField] private EntityStorageSignals storageSignals;
     private const string _file_location = "C:\\Users\\onurh\\OneDrive\\Documents\\GameficatedGedFileReader\\";
-    private string _file_name = "Harry.ged";
+    private string _file_name = "shakespeare.ged";
 
     private void Start()
     {

@@ -43,28 +43,15 @@ public class HierarchyCreator : MonoBehaviour
         SetDivorcedFamilyNodes();
 
         ArrangeParentNodes();
-        DrawLines();
+        DrawLines(allIndividualGameObjects);
+        DrawLines(otherIndividualGameObjects);
     }
 
     private void CreateFamiliesAndIndividuals()
     {
-        //HashSet<string> childIds = new HashSet<string>();
-        //foreach (var family in families.Values)
-        //{
-        //    foreach (var child in family.Children)
-        //    {
-        //        childIds.Add(child);
-        //    }
-        //}
-        //Vector3 startPosition = Vector3.zero;
-
         foreach (var family in families.Values)
         {
-            //if (!childIds.Contains(family.Id)) // Root family
-            {
-                //startPosition += Vector3.right * FamilyHorizontalSpacing * 2; // Shift root families to the right
-                PlaceFamily(family, Vector3.zero, individuals, families);
-            }
+            PlaceFamily(family, Vector3.zero, individuals, families);
         }
     }
 
@@ -196,7 +183,7 @@ public class HierarchyCreator : MonoBehaviour
 
                     if (familyChildCount > 0)
                     {
-                        startPoint = (((familyChildCount / 2) - 0.5f) * -1) * FamilyHorizontalSpacing;
+                        startPoint = PositionCalculator(familyChildCount);
                     }
 
                     createdFamilies[familyInteractionCountDictionary.Key].transform.position = createdFamilies[husbFamcFamily.Id].transform.position + new Vector3(startPoint + husbandFamilyChildIndex * FamilyHorizontalSpacing, 0, 10);
@@ -226,9 +213,9 @@ public class HierarchyCreator : MonoBehaviour
                 float startPoint = 0f;
                 int husbandFamilyChildIndex = families[husbFamcFamily.Id].ChildrenToShow.IndexOf(i.Key);
 
-                if (familyChildCount > 1)
+                if (familyChildCount > 0)
                 {
-                    startPoint = (((familyChildCount / 2) - 0.5f) * -1) * FamilyHorizontalSpacing;
+                    startPoint = PositionCalculator(familyChildCount);
                 }
                 individualNode.transform.position = createdFamilies[husbFamcFamily.Id].transform.position + new Vector3(startPoint + husbandFamilyChildIndex * FamilyHorizontalSpacing, 0, 10);
                 if (allIndividualGameObjects.ContainsKey(i.Key))
@@ -241,24 +228,15 @@ public class HierarchyCreator : MonoBehaviour
         }
     }
 
-    private void DrawLines()
+    private float PositionCalculator(int familyChildCount)
     {
-        foreach (var i in allIndividualGameObjects)
-        {
-            if (entityStorageSignals.onGetIndividuals()[i.Key].FAMC != null)
-            {
-                string husbFamc = entityStorageSignals.onGetIndividuals()[i.Key].FAMC;
 
-                i.Value.GetComponent<LineRenderer>().SetPosition(0, i.Value.transform.position);
-                i.Value.GetComponent<LineRenderer>().SetPosition(1, createdFamilies[husbFamc].transform.position);
-            }
-            else
-            {
-                i.Value.GetComponent<LineRenderer>().positionCount = 0;
-            }
-        }
+        return (((familyChildCount / 2) - 0.5f) * -1) * FamilyHorizontalSpacing;
+    }
 
-        foreach (var i in otherIndividualGameObjects)
+    private void DrawLines(Dictionary<string,GameObject> individualDictionary)
+    {
+        foreach (var i in individualDictionary)
         {
             if (entityStorageSignals.onGetIndividuals()[i.Key].FAMC != null)
             {
