@@ -12,7 +12,6 @@ class GEDFileReader : MonoBehaviour
     private void Start()
     {
         ReadGEDFile(_file_location + _file_name);
-        //PrintData();
     }
 
     public void ReadGEDFile(string filePath)

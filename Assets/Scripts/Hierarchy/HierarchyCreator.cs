@@ -6,49 +6,66 @@ public class HierarchyCreator : MonoBehaviour
 {
     public GameObject WomanPrefab; // Prefab for individual nodes
     public GameObject ManPrefab; // Prefab for individual nodes
+    public GameObject FamilyPrefab; // Prefab for individual nodes
+
     public Material LineMaterial; // Material for LineRenderer
-    public float Spacing = 1f; // Spacing between nodes
+
     public float FamilyHorizontalSpacing = 2f; // Spacing between nodes
     public float IndividualHorizontalSpacing = 1f; // Spacing between nodes
+    public int ParentNodeSpacing = 20;
     [SerializeField] private EntityStorageSignals entityStorageSignals;
     private Dictionary<string, GameObject> createdFamilies = new Dictionary<string, GameObject>();
     private Dictionary<string, int> nodesInteractionCounts = new Dictionary<string, int>();
     private Dictionary<string, GameObject> allIndividualGameObjects = new Dictionary<string, GameObject>();
+    private Dictionary<string, GameObject> otherIndividualGameObjects = new Dictionary<string, GameObject>();
     private int maxConnectionCount = 0;
+    Dictionary<string, Family> families;
+    Dictionary<string, Individual> individuals;
+
     public void Start()
     {
+        Init();
         Invoke("CreateHierarchy", 1f);
+    }
+
+    private void Init()
+    {
+        families = entityStorageSignals.onGetFamilies();
+        individuals = entityStorageSignals.onGetIndividuals();
     }
 
     public void CreateHierarchy()
     {
-        // Find root families
-        HashSet<string> childIds = new HashSet<string>();
-        foreach (var family in entityStorageSignals.onGetFamilies().Values)
-        {
-            foreach (var child in family.Children)
-            {
-                childIds.Add(child);
-            }
-        }
-        Vector3 startPosition = Vector3.zero;
-
-        // Place root families
-        foreach (var family in entityStorageSignals.onGetFamilies().Values)
-        {
-
-            if (!childIds.Contains(family.Id)) // Root family
-            {
-                startPosition += Vector3.right * FamilyHorizontalSpacing * 2; // Shift root families to the right
-                PlaceFamily(family, startPosition, entityStorageSignals.onGetIndividuals(), entityStorageSignals.onGetFamilies());
-            }
-        }
-
-        //OrderFamilies();
-        SetNodes();
+        CreateFamiliesAndIndividuals();
+        SetFamiliesInteractionCounts();
         OrderFamilies();
         PlaceUnfamiliedIndividuals();
+        SetDivorcedFamilyNodes();
+
+        ArrangeParentNodes();
         DrawLines();
+    }
+
+    private void CreateFamiliesAndIndividuals()
+    {
+        //HashSet<string> childIds = new HashSet<string>();
+        //foreach (var family in families.Values)
+        //{
+        //    foreach (var child in family.Children)
+        //    {
+        //        childIds.Add(child);
+        //    }
+        //}
+        //Vector3 startPosition = Vector3.zero;
+
+        foreach (var family in families.Values)
+        {
+            //if (!childIds.Contains(family.Id)) // Root family
+            {
+                //startPosition += Vector3.right * FamilyHorizontalSpacing * 2; // Shift root families to the right
+                PlaceFamily(family, Vector3.zero, individuals, families);
+            }
+        }
     }
 
     private void PlaceFamily(Family family, Vector3 position, Dictionary<string, Individual> individuals, Dictionary<string, Family> families)
@@ -56,6 +73,8 @@ public class HierarchyCreator : MonoBehaviour
         GameObject newFamily = new GameObject();
         createdFamilies[family.Id] = newFamily;
         newFamily.transform.position = position;
+        newFamily.name = family.Id;
+
         Vector3 familyPosition = position;
         if (family.Husband != "" && individuals.ContainsKey(family.Husband))
         {
@@ -70,57 +89,90 @@ public class HierarchyCreator : MonoBehaviour
     private void PlaceIndividual(string individualId, Vector3 position, Dictionary<string, Individual> individuals, GameObject familyObject)
     {
         // Create individual node
-        GameObject individualNode = Instantiate(individuals[individualId].Gender == "M"? ManPrefab: WomanPrefab, position, Quaternion.identity);
+        GameObject preferedPrefab = null;
+        if (individuals[individualId].Gender == "M")
+        {
+            preferedPrefab = ManPrefab;
+        }
+        else if (individuals[individualId].Gender == "F")
+        {
+            preferedPrefab = WomanPrefab;
+
+        }
+        else
+        {
+            preferedPrefab = FamilyPrefab;
+        }
+
+        GameObject individualNode = Instantiate(preferedPrefab, position, Quaternion.identity);
+
         individualNode.GetComponent<CharacterController>().SetData(individuals[individualId]);
         individualNode.name = individualId;
         individualNode.transform.parent = familyObject.transform;
-        familyObject.name = individuals[individualId].FAMS;
 
+        if (allIndividualGameObjects.ContainsKey(individualId))
+        {
+            if (!otherIndividualGameObjects.ContainsKey(individualId))
+            {
+                otherIndividualGameObjects.Add(individualId, individualNode);
+            }
+            return;
+        }
         allIndividualGameObjects.Add(individualId, individualNode);
     }
 
-    private void SetNodes()
+    private void SetFamiliesInteractionCounts()
     {
         foreach (var createdFamilyId in createdFamilies.Keys)
         {
-            foreach (var individual in entityStorageSignals.onGetIndividuals())
+            foreach (var individual in individuals)
             {
-                if (individual.Value.Gender != "M")
+                if (individual.Value.Gender == "F")
                 {
                     continue;
                 }
                 int nodeCount = 0;
                 if (createdFamilyId == individual.Value.FAMS)
                 {
-                    Individual indi = individual.Value;
-                    while (indi.FAMC != null)
-                    {
-                        ++nodeCount;
-
-                        indi = entityStorageSignals.onGetIndividuals()[entityStorageSignals.onGetFamilies()[indi.FAMC].Husband];
-                    }
-
-                    nodesInteractionCounts[createdFamilyId] = nodeCount;
-                    if (nodeCount > maxConnectionCount)
-                    {
-                        maxConnectionCount = nodeCount;
-                    }
+                    CalculateFamilyInteractionCount(nodeCount, individual.Value, createdFamilyId);
                 }
             }
         }
+    }
 
-        foreach (var i in nodesInteractionCounts)
+    private void CalculateFamilyInteractionCount(int nodeCount, Individual indi, string familyId)
+    {
+        while (indi.FAMC != null)
         {
-            //Debug.Log(i.Key + " " + i.Value);
+            ++nodeCount;
+            if (!individuals.ContainsKey(families[indi.FAMC].Husband))
+            {
+                break;
+            }
+            indi = individuals[families[indi.FAMC].Husband];
+        }
+        nodesInteractionCounts[familyId] = nodeCount;
+
+        if (nodeCount > maxConnectionCount)
+        {
+            maxConnectionCount = nodeCount;
+        }
+    }
+
+    private void SetDivorcedFamilyNodes()
+    {
+        foreach (var family in entityStorageSignals.onGetFamilies())
+        {
+            if (!nodesInteractionCounts.ContainsKey(family.Key))
+            {
+                CalculateFamilyInteractionCount(0, individuals[families[family.Key].Husband], family.Key);
+            }
         }
     }
 
     private void OrderFamilies()
     {
         //Hiyerarþi listesi oluþtur. altlardakilerin countlarý daha fazla iken üstlerdekilerin daha az olacak. Önce az olanlarý oluþturup kademe kademe alta inebilirsin.
-
-        Dictionary<string,Family> families = entityStorageSignals.onGetFamilies();
-        Dictionary<string,Individual> individuals = entityStorageSignals.onGetIndividuals();
 
         for (int i = 0; i < maxConnectionCount + 2; i++)
         {
@@ -142,12 +194,13 @@ public class HierarchyCreator : MonoBehaviour
                     float startPoint = 0f;
                     int husbandFamilyChildIndex = families[husbFamcFamily.Id].ChildrenToShow.IndexOf(husbId);
 
-                    if (familyChildCount > 1)
+                    if (familyChildCount > 0)
                     {
-                        startPoint = ((familyChildCount / 2) - 0.5f) * -1;
+                        startPoint = (((familyChildCount / 2) - 0.5f) * -1) * FamilyHorizontalSpacing;
                     }
 
-                    createdFamilies[familyInteractionCountDictionary.Key].transform.position = createdFamilies[husbFamcFamily.Id].transform.position + new Vector3(startPoint + 1 * husbandFamilyChildIndex * FamilyHorizontalSpacing, 0, 10);
+                    createdFamilies[familyInteractionCountDictionary.Key].transform.position = createdFamilies[husbFamcFamily.Id].transform.position + new Vector3(startPoint + husbandFamilyChildIndex * FamilyHorizontalSpacing, 0, 10);
+                    createdFamilies[familyInteractionCountDictionary.Key].transform.parent = createdFamilies[husbFamcFamily.Id].transform;
                 }
             }
         }
@@ -155,9 +208,6 @@ public class HierarchyCreator : MonoBehaviour
 
     private void PlaceUnfamiliedIndividuals()
     {
-        Dictionary<string, Family> families = entityStorageSignals.onGetFamilies();
-        Dictionary<string, Individual> individuals = entityStorageSignals.onGetIndividuals();
-
         foreach (var i in individuals)
         {
             if (i.Value.FAMS == null)
@@ -167,6 +217,10 @@ public class HierarchyCreator : MonoBehaviour
                 individualNode.name = i.Key;
 
                 string husbFamc = individuals[i.Key].FAMC;
+                if (individuals[i.Key].FAMC =="")
+                {
+                    continue;
+                }
                 Family husbFamcFamily = families[husbFamc];
                 int familyChildCount = families[husbFamcFamily.Id].ChildrenToShow.Count;
                 float startPoint = 0f;
@@ -174,13 +228,15 @@ public class HierarchyCreator : MonoBehaviour
 
                 if (familyChildCount > 1)
                 {
-                    startPoint = (((familyChildCount / 2) - 0.5f) * -1);
+                    startPoint = (((familyChildCount / 2) - 0.5f) * -1) * FamilyHorizontalSpacing;
                 }
                 individualNode.transform.position = createdFamilies[husbFamcFamily.Id].transform.position + new Vector3(startPoint + husbandFamilyChildIndex * FamilyHorizontalSpacing, 0, 10);
-
+                if (allIndividualGameObjects.ContainsKey(i.Key))
+                {
+                    continue;
+                }
                 allIndividualGameObjects.Add(i.Key, individualNode);
-                //individualNode.GetComponent<LineRenderer>().SetPosition(0, individualNode.transform.position);
-                //individualNode.GetComponent<LineRenderer>().SetPosition(1, createdFamilies[husbFamcFamily.Id].transform.position);
+                individualNode.transform.parent = createdFamilies[husbFamcFamily.Id].transform;
             }
         }
     }
@@ -199,6 +255,35 @@ public class HierarchyCreator : MonoBehaviour
             else
             {
                 i.Value.GetComponent<LineRenderer>().positionCount = 0;
+            }
+        }
+
+        foreach (var i in otherIndividualGameObjects)
+        {
+            if (entityStorageSignals.onGetIndividuals()[i.Key].FAMC != null)
+            {
+                string husbFamc = entityStorageSignals.onGetIndividuals()[i.Key].FAMC;
+
+                i.Value.GetComponent<LineRenderer>().SetPosition(0, i.Value.transform.position);
+                i.Value.GetComponent<LineRenderer>().SetPosition(1, createdFamilies[husbFamc].transform.position);
+            }
+            else
+            {
+                i.Value.GetComponent<LineRenderer>().positionCount = 0;
+            }
+        }
+    }
+
+    private void ArrangeParentNodes()
+    {
+        int offset = 0;
+        foreach (var i in nodesInteractionCounts)
+        {
+            if (i.Value == 0)
+            {
+                Vector3 pos = createdFamilies[i.Key].transform.position;
+                offset += ParentNodeSpacing;
+                createdFamilies[i.Key].transform.position = new Vector3(offset, pos.y, pos.z);
             }
         }
     }
