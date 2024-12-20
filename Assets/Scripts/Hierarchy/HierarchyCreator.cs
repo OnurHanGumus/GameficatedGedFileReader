@@ -6,7 +6,9 @@ public class HierarchyCreator : MonoBehaviour
 {
     public GameObject WomanPrefab; // Prefab for individual nodes
     public GameObject ManPrefab; // Prefab for individual nodes
-    public GameObject FamilyPrefab; // Prefab for individual nodes
+    public GameObject OthersPrefab; // Prefab for individual nodes
+
+    public GameObject FamilyPrefab;
 
     public Material LineMaterial; // Material for LineRenderer
 
@@ -30,8 +32,23 @@ public class HierarchyCreator : MonoBehaviour
 
     private void OnFileOpened()
     {
+        Reset();
+        Init();
         Invoke("CreateHierarchy", 1f);
 
+    }
+
+    private void Reset()
+    {
+        foreach (var i in createdFamilies)
+        {
+            Destroy(i.Value);
+        }
+        createdFamilies.Clear();
+        nodesInteractionCounts.Clear();
+        allIndividualGameObjects.Clear();
+        otherIndividualGameObjects.Clear();
+        maxConnectionCount = 0;
     }
 
     private void Init()
@@ -63,7 +80,7 @@ public class HierarchyCreator : MonoBehaviour
 
     private void PlaceFamily(Family family, Vector3 position, Dictionary<string, Individual> individuals, Dictionary<string, Family> families)
     {
-        GameObject newFamily = new GameObject();
+        GameObject newFamily = Instantiate(FamilyPrefab, position, Quaternion.identity);
         createdFamilies[family.Id] = newFamily;
         newFamily.transform.position = position;
         newFamily.name = family.Id;
@@ -71,7 +88,7 @@ public class HierarchyCreator : MonoBehaviour
         Vector3 familyPosition = position;
         if (family.Husband != "" && individuals.ContainsKey(family.Husband))
         {
-            PlaceIndividual(family.Husband, familyPosition, individuals, newFamily);
+            PlaceIndividual(family.Husband, familyPosition + Vector3.left * IndividualHorizontalSpacing, individuals, newFamily);
         }
         if (family.Wife != "" && individuals.ContainsKey(family.Wife))
         {
@@ -94,7 +111,7 @@ public class HierarchyCreator : MonoBehaviour
         }
         else
         {
-            preferedPrefab = FamilyPrefab;
+            preferedPrefab = OthersPrefab;
         }
 
         GameObject individualNode = Instantiate(preferedPrefab, position, Quaternion.identity);
@@ -158,7 +175,12 @@ public class HierarchyCreator : MonoBehaviour
         {
             if (!nodesInteractionCounts.ContainsKey(family.Key))
             {
-                CalculateFamilyInteractionCount(0, individuals[families[family.Key].Husband], family.Key);
+                string parentId = families[family.Key].Husband;
+                if (parentId == null || parentId == "")
+                {
+                    parentId = families[family.Key].Wife;
+                }
+                CalculateFamilyInteractionCount(0, individuals[parentId], family.Key);
             }
         }
     }
@@ -192,7 +214,7 @@ public class HierarchyCreator : MonoBehaviour
                         startPoint = PositionCalculator(familyChildCount);
                     }
 
-                    createdFamilies[familyInteractionCountDictionary.Key].transform.position = createdFamilies[husbFamcFamily.Id].transform.position + new Vector3(startPoint + husbandFamilyChildIndex * FamilyHorizontalSpacing, 0, 10);
+                    createdFamilies[familyInteractionCountDictionary.Key].transform.position = createdFamilies[husbFamcFamily.Id].transform.position + new Vector3(startPoint + husbandFamilyChildIndex * 0.5f + (husbandFamilyChildIndex * FamilyHorizontalSpacing), 0, 10);
                     createdFamilies[familyInteractionCountDictionary.Key].transform.parent = createdFamilies[husbFamcFamily.Id].transform;
                 }
             }
@@ -210,10 +232,11 @@ public class HierarchyCreator : MonoBehaviour
                 individualNode.name = i.Key;
 
                 string husbFamc = individuals[i.Key].FAMC;
-                if (individuals[i.Key].FAMC =="")
+                if (husbFamc == "" || husbFamc == null)
                 {
                     continue;
                 }
+
                 Family husbFamcFamily = families[husbFamc];
                 int familyChildCount = families[husbFamcFamily.Id].ChildrenToShow.Count;
                 float startPoint = 0f;
@@ -223,7 +246,7 @@ public class HierarchyCreator : MonoBehaviour
                 {
                     startPoint = PositionCalculator(familyChildCount);
                 }
-                individualNode.transform.position = createdFamilies[husbFamcFamily.Id].transform.position + new Vector3(startPoint + husbandFamilyChildIndex * FamilyHorizontalSpacing, 0, 10);
+                individualNode.transform.position = createdFamilies[husbFamcFamily.Id].transform.position + new Vector3(startPoint + (husbandFamilyChildIndex * FamilyHorizontalSpacing), 0, 10);
                 if (allIndividualGameObjects.ContainsKey(i.Key))
                 {
                     continue;
@@ -237,7 +260,7 @@ public class HierarchyCreator : MonoBehaviour
     private float PositionCalculator(int familyChildCount)
     {
 
-        return (((familyChildCount / 2) - 0.5f) * -1) * FamilyHorizontalSpacing;
+        return ((((familyChildCount / 2) - 0.5f) * -1) * FamilyHorizontalSpacing);
     }
 
     private void DrawLines(Dictionary<string,GameObject> individualDictionary)

@@ -11,6 +11,9 @@ class GEDFileReader : MonoBehaviour
 
     public void ReadGEDFile(string filePath)
     {
+        storageSignals.onGetFamilies().Clear();
+        storageSignals.onGetIndividuals().Clear();
+
         string currentId = null;
         string currentType = null;
 

@@ -992,10 +992,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   WomanPrefab: {fileID: 8860235993948104452, guid: abb63a49fd2ef9943ac5c5544a449016, type: 3}
   ManPrefab: {fileID: 2766791851403130053, guid: 7e266940e81384b458f5e5fc2d7bd6fd, type: 3}
-  FamilyPrefab: {fileID: 8713627130999943829, guid: ff08581acfd83c94cb8f2a934e30fec5, type: 3}
+  OthersPrefab: {fileID: 8713627130999943829, guid: ff08581acfd83c94cb8f2a934e30fec5, type: 3}
+  FamilyPrefab: {fileID: 6098029967107476193, guid: fc47c2bf2e4b59a46889a64d3eb661d1, type: 3}
   LineMaterial: {fileID: 2100000, guid: 55cd4ec96b8c8dc4d9c3c7293b290506, type: 2}
-  FamilyHorizontalSpacing: 3
-  IndividualHorizontalSpacing: 1
+  FamilyHorizontalSpacing: 6
+  IndividualHorizontalSpacing: 0.5
   ParentNodeSpacing: 20
   entityStorageSignals: {fileID: 1522584453}
 --- !u!4 &1953945922
