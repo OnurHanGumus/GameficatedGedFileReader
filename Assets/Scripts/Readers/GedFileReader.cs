@@ -67,7 +67,11 @@ class GEDFileReader : MonoBehaviour
                     }
                     else if (tag == "FAMS")
                     {
-                        storageSignals.onGetIndividuals()[currentId].FAMS = value;
+                        if (storageSignals.onGetIndividuals()[currentId].FAMS == null)
+                        {
+                            storageSignals.onGetIndividuals()[currentId].FAMS = new List<string>();
+                        }
+                        storageSignals.onGetIndividuals()[currentId].FAMS.Add(value);
                     }
                 }
                 else if (currentType == "FAM")
@@ -87,7 +91,7 @@ class GEDFileReader : MonoBehaviour
                         {
                             storageSignals.onGetFamilies()[currentId].ChildrenToShow.Add(value);
                         }
-                        else if (storageSignals.onGetIndividuals()[value].Gender == "F" && storageSignals.onGetIndividuals()[value].FAMS == null)
+                        else if (storageSignals.onGetIndividuals()[value].Gender == "F" && storageSignals.onGetIndividuals()[value].FAMS.Count == 0)
                         {
                             storageSignals.onGetFamilies()[currentId].ChildrenToShow.Add(value);
                         }
@@ -124,8 +128,6 @@ class GEDFileReader : MonoBehaviour
     IEnumerator ShowLoadDialogCoroutine()
     {
         yield return FileBrowser.WaitForLoadDialog(FileBrowser.PickMode.Files, true, null, null, "Select Files", "Load");
-
-        Debug.Log(FileBrowser.Success);
 
         if (FileBrowser.Success)
         {

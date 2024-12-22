@@ -68,6 +68,7 @@ public class HierarchyCreator : MonoBehaviour
         ArrangeParentNodes();
         DrawLines(allIndividualGameObjects);
         DrawLines(otherIndividualGameObjects);
+        PositionFamiliesWhichDontHaveHusb();
     }
 
     private void CreateFamiliesAndIndividuals()
@@ -142,7 +143,7 @@ public class HierarchyCreator : MonoBehaviour
                     continue;
                 }
                 int nodeCount = 0;
-                if (createdFamilyId == individual.Value.FAMS)
+                if (individual.Value.FAMS.Contains(createdFamilyId))
                 {
                     CalculateFamilyInteractionCount(nodeCount, individual.Value, createdFamilyId);
                 }
@@ -179,20 +180,25 @@ public class HierarchyCreator : MonoBehaviour
                 if (parentId == null || parentId == "")
                 {
                     parentId = families[family.Key].Wife;
+                    if (parentId == null || parentId == "")
+                    {
+                        parentId = families[family.Key].Children[0];
+                    }
                 }
-                CalculateFamilyInteractionCount(0, individuals[parentId], family.Key);
+                Individual i = individuals[parentId];
+                CalculateFamilyInteractionCount(0, i, family.Key);
             }
         }
     }
 
     private void OrderFamilies()
     {
-        //Hiyerarþi listesi oluþtur. altlardakilerin countlarý daha fazla iken üstlerdekilerin daha az olacak. Önce az olanlarý oluþturup kademe kademe alta inebilirsin.
-
+        int individualMarriageCount = 0;
         for (int i = 0; i < maxConnectionCount + 2; i++)
         {
             foreach (var familyInteractionCountDictionary in nodesInteractionCounts)
             {
+
                 if (familyInteractionCountDictionary.Value == i)
                 {
                     //ailenin pozisyonu, o ailenin husbýnýn babasýnýn ailesinin pozisyonuna eþitlenir.
@@ -214,8 +220,27 @@ public class HierarchyCreator : MonoBehaviour
                         startPoint = PositionCalculator(familyChildCount);
                     }
 
-                    createdFamilies[familyInteractionCountDictionary.Key].transform.position = createdFamilies[husbFamcFamily.Id].transform.position + new Vector3(startPoint + husbandFamilyChildIndex * 0.5f + (husbandFamilyChildIndex * FamilyHorizontalSpacing), 0, 10);
-                    createdFamilies[familyInteractionCountDictionary.Key].transform.parent = createdFamilies[husbFamcFamily.Id].transform;
+                    if (individuals[husbId].FAMS.Count > 1) //If he married more than one time.
+                    {
+                        individualMarriageCount = 0;
+                        foreach (var husbFams in individuals[husbId].FAMS)
+                        {
+                            if (husbFams == familyInteractionCountDictionary.Key)
+                            {
+                                createdFamilies[familyInteractionCountDictionary.Key].transform.position = createdFamilies[husbFamcFamily.Id].transform.position + new Vector3(startPoint + husbandFamilyChildIndex * 0.5f + ((husbandFamilyChildIndex + individualMarriageCount) * FamilyHorizontalSpacing / 2), 0, 10);
+                                createdFamilies[familyInteractionCountDictionary.Key].transform.parent = createdFamilies[husbFamcFamily.Id].transform;
+                            }
+                            ++individualMarriageCount;
+
+                        }
+
+                    }
+                    else
+                    {
+                        createdFamilies[familyInteractionCountDictionary.Key].transform.position = createdFamilies[husbFamcFamily.Id].transform.position + new Vector3(startPoint + husbandFamilyChildIndex * 0.5f + (husbandFamilyChildIndex * FamilyHorizontalSpacing), 0, 10);
+                        createdFamilies[familyInteractionCountDictionary.Key].transform.parent = createdFamilies[husbFamcFamily.Id].transform;
+                    }
+
                 }
             }
         }
@@ -225,34 +250,35 @@ public class HierarchyCreator : MonoBehaviour
     {
         foreach (var i in individuals)
         {
-            if (i.Value.FAMS == null)
+            if (i.Value.FAMS.Count == 0)
             {
                 GameObject individualNode = Instantiate(individuals[i.Key].Gender == "M" ? ManPrefab : WomanPrefab, Vector3.zero, Quaternion.identity);
                 individualNode.GetComponent<CharacterController>().SetData(individuals[i.Key]);
                 individualNode.name = i.Key;
 
-                string husbFamc = individuals[i.Key].FAMC;
-                if (husbFamc == "" || husbFamc == null)
+                string indiFamc = individuals[i.Key].FAMC;
+                if (indiFamc == "" || indiFamc == null)
                 {
                     continue;
                 }
 
-                Family husbFamcFamily = families[husbFamc];
-                int familyChildCount = families[husbFamcFamily.Id].ChildrenToShow.Count;
+                Family indiFamcFamily = families[indiFamc];
+                int familyChildCount = families[indiFamcFamily.Id].ChildrenToShow.Count;
                 float startPoint = 0f;
-                int husbandFamilyChildIndex = families[husbFamcFamily.Id].ChildrenToShow.IndexOf(i.Key);
+                int husbandFamilyChildIndex = families[indiFamcFamily.Id].ChildrenToShow.IndexOf(i.Key);
 
-                if (familyChildCount > 0)
+                //if (familyChildCount > 0)
                 {
                     startPoint = PositionCalculator(familyChildCount);
                 }
-                individualNode.transform.position = createdFamilies[husbFamcFamily.Id].transform.position + new Vector3(startPoint + (husbandFamilyChildIndex * FamilyHorizontalSpacing), 0, 10);
+
+                individualNode.transform.position = createdFamilies[indiFamcFamily.Id].transform.position + new Vector3(startPoint + (husbandFamilyChildIndex * FamilyHorizontalSpacing), 0, 10);
                 if (allIndividualGameObjects.ContainsKey(i.Key))
                 {
                     continue;
                 }
                 allIndividualGameObjects.Add(i.Key, individualNode);
-                individualNode.transform.parent = createdFamilies[husbFamcFamily.Id].transform;
+                individualNode.transform.parent = createdFamilies[indiFamcFamily.Id].transform;
             }
         }
     }
@@ -291,6 +317,18 @@ public class HierarchyCreator : MonoBehaviour
                 Vector3 pos = createdFamilies[i.Key].transform.position;
                 offset += ParentNodeSpacing;
                 createdFamilies[i.Key].transform.position = new Vector3(offset, pos.y, pos.z);
+            }
+        }
+    }
+
+    private void PositionFamiliesWhichDontHaveHusb()
+    {
+
+        foreach (var f in families)
+        {
+            if (f.Value.Husband == null)
+            {
+                Debug.Log(f.Key);
             }
         }
     }
