@@ -10,9 +10,13 @@ public class GameController : MonoBehaviour
     [SerializeField] private Button openGameButton;
     [SerializeField] private EntityStorageSignals signals;
     [SerializeField] private TextMeshProUGUI[] choiceTexts;
+    [SerializeField] private TextMeshProUGUI questionText;
+    [SerializeField] private TextMeshProUGUI scoreText;
 
     Dictionary<string, Family> families;
     Dictionary<string, Individual> individuals;
+    Individual indi;
+    Individual answerIndi;
 
     private void Start()
     {
@@ -34,44 +38,84 @@ public class GameController : MonoBehaviour
     private void OnFileOpened()
     {
         openGameButton.interactable = true;
+        scoreText.text = 0.ToString();
+    }
+
+    public void AskQuestionButton()
+    {
+        AskQuestion();
     }
 
     private void AskQuestion()
     {
-        int indiIndeks = Random.Range(0, individuals.Count);
-        Individual indi = individuals.ElementAt(indiIndeks).Value;
-
-        Individual answerIndi = FindCouple(indi);
-        while (answerIndi == null)
+        do
         {
+            int indiIndeks = Random.Range(0, individuals.Count);
+            indi = individuals.ElementAt(indiIndeks).Value;
+
             answerIndi = FindCouple(indi);
+
+        } while (answerIndi == null);
+
+        questionText.text = "What is the name of " + indi.Name + "'s partner?";
+        ArrangeAnswers(answerIndi);
+    }
+
+    private void ArrangeAnswers(Individual answerIndi)
+    {
+        foreach (var i in choiceTexts)
+        {
+            Individual wrongIndi = individuals.ElementAt(Random.Range(0, individuals.Count)).Value;
+            if (wrongIndi.Id != answerIndi.Id)
+            {
+                i.text = wrongIndi.Name;
+            }
         }
-        
+
+        choiceTexts[Random.Range(0, choiceTexts.Length)].text = answerIndi.Name;
     }
 
     private Individual FindCouple(Individual indi)
     {
-        if (indi.FAMS.Count < 0)
+        try
         {
+            if (indi.FAMS.Count < 0)
+            {
+                return null;
+            }
+            if (indi.Gender == "M")
+            {
+                return individuals[families[indi.FAMS[0]].Wife];
+            }
+            else if (indi.Gender == "F")
+            {
+                return individuals[families[indi.FAMS[0]].Husband];
+            }
+            else
+            {
+                return null;
+            }
+        }
+        catch (System.Exception)
+        {
+
             return null;
         }
-        if (indi.Gender == "M")
+        
+    }
+
+    public void AnswerButton(int id)
+    {
+        if (choiceTexts[id].text == answerIndi.Name)
         {
-            return individuals[families[indi.FAMS[0]].Wife];
+            scoreText.text = (int.Parse(scoreText.text) + 10).ToString();
         }
-        else if (indi.Gender == "F")
-        {
-            return individuals[families[indi.FAMS[0]].Husband];
-        }
-        else
-        {
-            return null;
-        }
+
+        AskQuestion();
     }
 
     private Individual FindFatherName(Individual indi)
     {
-
         foreach (var i in families.Values)
         {
             foreach (var y in i.Children)

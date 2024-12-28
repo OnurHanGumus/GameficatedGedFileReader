@@ -296,7 +296,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 654.2985}
+  m_AnchoredPosition: {x: 0, y: 1100}
   m_SizeDelta: {x: 100, y: 16.8511}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &59501361
@@ -543,7 +543,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 80
+  m_text: 0
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -929,6 +929,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 1
         m_CallState: 2
+      - m_Target: {fileID: 1679676995}
+        m_TargetAssemblyTypeName: GameController, Assembly-CSharp
+        m_MethodName: AskQuestionButton
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 1
+        m_CallState: 2
 --- !u!114 &387936213
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1300,7 +1312,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 615185657}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1679676995}
+        m_TargetAssemblyTypeName: GameController, Assembly-CSharp
+        m_MethodName: AnswerButton
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &642550825
 GameObject:
   m_ObjectHideFlags: 0
@@ -2093,7 +2117,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1298842642}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1679676995}
+        m_TargetAssemblyTypeName: GameController, Assembly-CSharp
+        m_MethodName: AnswerButton
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 2
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1427839843
 GameObject:
   m_ObjectHideFlags: 0
@@ -2266,7 +2302,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -1006}
+  m_AnchoredPosition: {x: 0, y: -1450}
   m_SizeDelta: {x: 72.582, y: 16.8511}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1454057024
@@ -2631,7 +2667,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1584074548}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1679676995}
+        m_TargetAssemblyTypeName: GameController, Assembly-CSharp
+        m_MethodName: AnswerButton
+        m_Mode: 3
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 1
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &1637134018
 GameObject:
   m_ObjectHideFlags: 0
@@ -2874,7 +2922,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   openGameButton: {fileID: 387936212}
   signals: {fileID: 1522584453}
-  choiceTexts: []
+  choiceTexts:
+  - {fileID: 2120741586}
+  - {fileID: 350721989}
+  - {fileID: 1664543096}
+  questionText: {fileID: 959783802}
+  scoreText: {fileID: 321573893}
 --- !u!4 &1679676996
 Transform:
   m_ObjectHideFlags: 0
@@ -3205,7 +3258,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 1227}
+  m_AnchoredPosition: {x: 0, y: 1410}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &2108059219
