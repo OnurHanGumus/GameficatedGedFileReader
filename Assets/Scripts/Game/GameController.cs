@@ -12,6 +12,7 @@ public class GameController : MonoBehaviour
     [SerializeField] private TextMeshProUGUI[] choiceTexts;
     [SerializeField] private TextMeshProUGUI questionText;
     [SerializeField] private TextMeshProUGUI scoreText;
+    [SerializeField] private TextMeshProUGUI answerText;
 
     Dictionary<string, Family> families;
     Dictionary<string, Individual> individuals;
@@ -39,6 +40,8 @@ public class GameController : MonoBehaviour
     {
         openGameButton.interactable = true;
         scoreText.text = 0.ToString();
+        answerText.color = new Color(1, 1, 1, 0);
+
     }
 
     public void AskQuestionButton()
@@ -109,6 +112,13 @@ public class GameController : MonoBehaviour
         if (choiceTexts[id].text == answerIndi.Name)
         {
             scoreText.text = (int.Parse(scoreText.text) + 10).ToString();
+            answerText.text = "Correct!";
+            answerText.color = Color.green;
+        }
+        else
+        {
+            answerText.text = "Incorrect! Answer was " + answerIndi.Name;
+            answerText.color = Color.red;
         }
 
         AskQuestion();

@@ -172,7 +172,7 @@ public class HierarchyCreator : MonoBehaviour
 
     private void SetDivorcedFamilyNodes()
     {
-        foreach (var family in entityStorageSignals.onGetFamilies())
+        foreach (var family in families)
         {
             if (!nodesInteractionCounts.ContainsKey(family.Key))
             {
